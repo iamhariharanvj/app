@@ -1,0 +1,409 @@
+java:
+
+package com.cscorner.crud;
+import android.database.Cursor;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
+import android.widget.Toast;
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity {
+
+    private DatabaseManager dbManager;
+    private EditText nameEditText, skillsEditText, hourlyRateEditText;
+    private ListView freelancersListView;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        dbManager = new DatabaseManager(this);
+        dbManager.open();
+
+        nameEditText = findViewById(R.id.nameEditText);
+        skillsEditText = findViewById(R.id.skillsEditText);
+        hourlyRateEditText = findViewById(R.id.hourlyRateEditText);
+        freelancersListView = findViewById(R.id.listView);
+
+        Button addButton = findViewById(R.id.addButton);
+        addButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String name = nameEditText.getText().toString();
+                String skills = skillsEditText.getText().toString();
+                String hourlyRateStr = hourlyRateEditText.getText().toString();
+                if (!name.isEmpty() && !skills.isEmpty() && !hourlyRateStr.isEmpty()) {
+                    double hourlyRate = Double.parseDouble(hourlyRateStr);
+                    long freelancerId = dbManager.createFreelancer(name, skills, hourlyRate);
+                    if (freelancerId > 0) {
+                        Toast.makeText(MainActivity.this, "Freelancer added successfully", Toast.LENGTH_SHORT).show();
+                        updateFreelancersList();
+                    } else {
+                        Toast.makeText(MainActivity.this, "Failed to add freelancer", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(MainActivity.this, "Please fill in all details", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        Button showButton = findViewById(R.id.showButton);
+        showButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showAllFreelancers();
+            }
+        });
+
+        Button updateButton = findViewById(R.id.updateButton);
+        updateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String name = nameEditText.getText().toString();
+                String newSkills = skillsEditText.getText().toString();
+                String newHourlyRateStr = hourlyRateEditText.getText().toString();
+                if (!name.isEmpty()) {
+                    if (!newSkills.isEmpty() && !newHourlyRateStr.isEmpty()) {
+                        double newHourlyRate = Double.parseDouble(newHourlyRateStr);
+                        int rowsUpdated = dbManager.updateFreelancer(name, newSkills, newHourlyRate);
+                        if (rowsUpdated > 0) {
+                            Toast.makeText(MainActivity.this, "Freelancer updated successfully", Toast.LENGTH_SHORT).show();
+                            updateFreelancersList();
+                        } else {
+                            Toast.makeText(MainActivity.this, "Failed to update freelancer", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(MainActivity.this, "Please enter new skills and hourly rate", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(MainActivity.this, "Please enter the name of the freelancer to update", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        Button deleteButton = findViewById(R.id.deleteButton);
+        deleteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String name = nameEditText.getText().toString();
+                if (!name.isEmpty()) {
+                    int rowsDeleted = dbManager.deleteFreelancer(name);
+                    if (rowsDeleted > 0) {
+                        Toast.makeText(MainActivity.this, "Freelancer deleted successfully", Toast.LENGTH_SHORT).show();
+                        updateFreelancersList();
+                    } else {
+                        Toast.makeText(MainActivity.this, "Failed to delete freelancer", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(MainActivity.this, "Please enter the name of the freelancer to delete", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private void updateFreelancersList() {
+        Cursor cursor = dbManager.readAllFreelancers();
+        String[] fromColumns = {"name", "skills", "hourly_rate"};
+        int[] toViews = {R.id.nameTextView, R.id.skillsTextView, R.id.hourlyRateTextView};
+        SimpleCursorAdapter adapter = new SimpleCursorAdapter(this, R.layout.list_item_layout, cursor, fromColumns, toViews, 0);
+        adapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
+            @Override
+            public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
+                if (view instanceof TextView) {
+                    TextView textView = (TextView) view;
+                    String text = cursor.getString(columnIndex);
+                    textView.setText(text);
+                    return true;
+                }
+                return false;
+            }
+        });
+        freelancersListView.setAdapter(adapter);
+    }
+
+    private void showAllFreelancers() {
+        updateFreelancersList();
+        Toast.makeText(MainActivity.this, "Showing all freelancers", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        dbManager.close();
+    }
+}
+
+DatabaseHelper.java:
+
+package com.cscorner.crud;
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
+public class DatabaseHelper extends SQLiteOpenHelper {
+
+    private static final String DATABASE_NAME = "freelancing_app.db";
+    private static final int DATABASE_VERSION = 1;
+
+    public DatabaseHelper(Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }
+
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        // Create table for freelancers
+        String createFreelancersTable = "CREATE TABLE IF NOT EXISTS freelancers (id INTEGER PRIMARY KEY, name TEXT NOT NULL, skills TEXT, hourly_rate REAL)";
+        db.execSQL(createFreelancersTable);
+
+        // Create table for projects
+        String createProjectsTable = "CREATE TABLE IF NOT EXISTS projects (id INTEGER PRIMARY KEY, title TEXT NOT NULL, description TEXT, budget REAL)";
+        db.execSQL(createProjectsTable);
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        // Drop older tables if they exist
+        db.execSQL("DROP TABLE IF EXISTS freelancers");
+        db.execSQL("DROP TABLE IF EXISTS projects");
+        // Recreate tables
+        onCreate(db);
+    }
+}
+
+DatabaseManager.java:
+
+package com.cscorner.crud;
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
+public class DatabaseManager {
+
+    private DatabaseHelper dbHelper;
+    private Context context;
+    private SQLiteDatabase database;
+
+    private static final String DATABASE_NAME = "FreelancersDB";
+    private static final String TABLE_NAME = "freelancers";
+    private static final int DATABASE_VERSION = 1;
+
+    private static final String ID = "_id";
+    private static final String NAME = "name";
+    private static final String SKILLS = "skills";
+    private static final String HOURLY_RATE = "hourly_rate";
+
+    private static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + " (" +
+            ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+            NAME + " TEXT, " +
+            SKILLS + " TEXT, " +
+            HOURLY_RATE + " REAL);";
+
+    public DatabaseManager(Context c) {
+        context = c;
+    }
+
+    public DatabaseManager open() throws SQLException {
+        dbHelper = new DatabaseHelper(context);
+        database = dbHelper.getWritableDatabase();
+        return this;
+    }
+
+    public void close() {
+        dbHelper.close();
+    }
+
+    public long createFreelancer(String name, String skills, double hourlyRate) {
+        ContentValues contentValue = new ContentValues();
+        contentValue.put(NAME, name);
+        contentValue.put(SKILLS, skills);
+        contentValue.put(HOURLY_RATE, hourlyRate);
+        return database.insert(TABLE_NAME, null, contentValue);
+    }
+
+    public Cursor readAllFreelancers() {
+        String[] columns = new String[]{ID, NAME, SKILLS, HOURLY_RATE};
+        return database.query(TABLE_NAME, columns, null, null, null, null, null);
+    }
+
+    public int updateFreelancer(String name, String newSkills, double newHourlyRate) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(SKILLS, newSkills);
+        contentValues.put(HOURLY_RATE, newHourlyRate);
+        return database.update(TABLE_NAME, contentValues, NAME + "=?", new String[]{name});
+    }
+
+    public int deleteFreelancer(String name) {
+        return database.delete(TABLE_NAME, NAME + "=?", new String[]{name});
+    }
+
+    private static class DatabaseHelper extends SQLiteOpenHelper {
+
+        DatabaseHelper(Context context) {
+            super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        }
+
+        @Override
+        public void onCreate(SQLiteDatabase db) {
+            db.execSQL(CREATE_TABLE);
+        }
+
+        @Override
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+            onCreate(db);
+        }
+    }
+}
+
+manifest:
+
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Crud"
+        tools:targetApi="31">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
+
+activitymain:
+
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <EditText
+        android:id="@+id/nameEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Name"
+        android:layout_marginTop="16dp"
+        android:layout_centerHorizontal="true"
+        android:minHeight="48dp"
+        android:padding="8dp"/>
+
+    <EditText
+        android:id="@+id/skillsEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Skills"
+        android:layout_below="@id/nameEditText"
+        android:layout_marginTop="16dp"
+        android:layout_centerHorizontal="true"
+        android:minHeight="48dp"
+        android:padding="8dp"/>
+
+    <EditText
+        android:id="@+id/hourlyRateEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Hourly Rate"
+        android:inputType="numberDecimal"
+        android:layout_below="@id/skillsEditText"
+        android:layout_marginTop="16dp"
+        android:layout_centerHorizontal="true"
+        android:minHeight="48dp"
+        android:padding="8dp"/>
+
+    <Button
+        android:id="@+id/addButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add"
+        android:layout_below="@id/hourlyRateEditText"
+        android:layout_marginTop="16dp"
+        android:layout_centerHorizontal="true"/>
+
+    <Button
+        android:id="@+id/showButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Show"
+        android:layout_below="@id/addButton"
+        android:layout_marginTop="16dp"
+        android:layout_centerHorizontal="true"/>
+
+    <Button
+        android:id="@+id/updateButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Update"
+        android:layout_below="@id/showButton"
+        android:layout_marginTop="16dp"
+        android:layout_centerHorizontal="true"/>
+
+    <Button
+        android:id="@+id/deleteButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Delete"
+        android:layout_below="@id/updateButton"
+        android:layout_marginTop="16dp"
+        android:layout_centerHorizontal="true"/>
+
+    <ListView
+        android:id="@+id/listView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/deleteButton"
+        android:layout_marginTop="16dp"/>
+
+</RelativeLayout>
+
+list_item_layout:
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/nameTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Name" />
+
+    <TextView
+        android:id="@+id/skillsTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Skills" />
+
+    <TextView
+        android:id="@+id/hourlyRateTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hourly Rate" />
+
+</LinearLayout>
+

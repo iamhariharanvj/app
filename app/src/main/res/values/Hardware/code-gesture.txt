@@ -1,0 +1,76 @@
+Activity.xml:-
+
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="10dp"
+    android:paddingRight="10dp"
+    android:orientation="vertical">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:autoLink="web"
+        android:text="@string/gesture"
+        android:layout_marginTop="30dp"
+        android:textStyle="bold" />
+
+    <ImageView android:id="@+id/imgvw"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:scaleType="matrix"
+        android:layout_marginTop="90dp"
+        android:layout_gravity="center"
+        android:src="@drawable/img_1"/>
+</LinearLayout>
+
+
+
+
+MainActivity.xml:-
+
+
+
+package com.example.gesture;
+
+import android.graphics.Matrix;
+import android.os.Bundle;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
+import android.widget.ImageView;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity {
+    private ImageView img;
+    private Matrix matrix = new Matrix();
+    private float scale = 1f;
+    private ScaleGestureDetector detector;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        img = (ImageView)findViewById(R.id.imgvw);
+        detector = new ScaleGestureDetector(MainActivity.this,new ScaleListener());
+    }
+    @Override
+    public boolean onTouchEvent(MotionEvent event){
+        detector.onTouchEvent(event);
+        return true;
+    }
+    private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener{
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            scale *= detector.getScaleFactor();
+            scale = Math.max(0.1f, Math.min(scale, 5.0f));
+            matrix.setScale(scale, scale);
+            img.setImageMatrix(matrix);
+            return true;
+        }
+    }
+}
+

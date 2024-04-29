@@ -1,0 +1,162 @@
+activity_main.xml:
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <ImageView
+        android:id="@+id/imageview"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="40dp"
+        android:contentDescription="@string/app_name"
+        android:src="@drawable/wall5" />
+
+    <LinearLayout
+        android:id="@+id/linear1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/imageview"
+        android:layout_marginTop="30dp"
+        android:orientation="horizontal"
+        android:weightSum="3">
+
+        <Button
+            android:id="@+id/BTNblink"
+            style="@style/TextAppearance.AppCompat.Widget.Button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_weight="1"
+            android:padding="3dp"
+            android:text="Blink"
+            android:textColor="@color/white" />
+
+
+        <Button
+            android:id="@+id/BTNrotate"
+            style="@style/TextAppearance.AppCompat.Widget.Button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_weight="1"
+            android:padding="3dp"
+            android:text="clockwiseRotation"
+            android:textColor="@color/white" />
+
+        <Button
+            android:id="@+id/BTNfade"
+            style="@style/TextAppearance.AppCompat.Widget.Button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_weight="1"
+            android:padding="3dp"
+            android:text="Fade"
+            android:textColor="@color/white" />
+    </LinearLayout>
+</RelativeLayout>
+
+
+MainActivity.java:
+
+package com.example.expt7;
+
+import android.os.Bundle;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.Button;
+import android.widget.ImageView;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity {
+
+    ImageView imageView;
+    Button blinkBTN, rotateBTN, fadeBTN;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        imageView = findViewById(R.id.imageview);
+        blinkBTN = findViewById(R.id.BTNblink);
+        rotateBTN = findViewById(R.id.BTNrotate);
+        fadeBTN = findViewById(R.id.BTNfade);
+        blinkBTN.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Animation animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.blink);
+                imageView.startAnimation(animation);
+            }
+        });
+
+        rotateBTN.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Animation animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.rotate);
+                imageView.startAnimation(animation);
+            }
+        });
+        fadeBTN.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Animation animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade);
+                imageView.startAnimation(animation);
+            }
+        });
+
+    }
+}
+
+fade.xml:
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <alpha
+        android:duration="1000"
+        android:fromAlpha="0"
+        android:toAlpha="1" />
+    <alpha
+        android:duration="1000"
+        android:fromAlpha="1"
+        android:startOffset="2000"
+        android:toAlpha="0"/>
+
+</set>
+
+rotate.xml:
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <rotate
+        android:duration="6000"
+        android:fromDegrees="0"
+        android:pivotX="50%"
+        android:pivotY="50%"
+        android:toDegrees="360" />
+    <rotate
+        android:duration="6000"
+        android:fromDegrees="360"
+        android:pivotX="50%"
+        android:pivotY="50%"
+        android:startOffset="5000"
+        android:toDegrees="0"/>
+
+</set>
+
+Blink.xml:
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <alpha android:fromAlpha="0.0"
+        android:toAlpha="1.0"
+        android:interpolator="@android:anim/accelerate_interpolator"
+        android:duration="500"
+        android:repeatMode="reverse"
+        android:repeatCount="infinite"/>
+
+</set>
+

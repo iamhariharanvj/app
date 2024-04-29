@@ -1,0 +1,139 @@
+activity.xml:-
+
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <EditText
+        android:id="@+id/phoneNumberEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/enter_phone_number"
+        android:inputType="phone"/>
+
+    <Button
+        android:id="@+id/activateSafetyButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/activate_safety_sphere"
+        android:layout_below="@id/phoneNumberEditText"
+        android:layout_centerHorizontal="true"/>
+
+</RelativeLayout>
+
+
+
+MainActivity.java:-
+
+
+
+package com.example.whatsapp1;
+
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity {
+
+    private EditText phoneNumberEditText;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        phoneNumberEditText = findViewById(R.id.phoneNumberEditText);
+        Button activateSafetyButton = findViewById(R.id.activateSafetyButton);
+        activateSafetyButton.setOnClickListener(view -> {
+            // Get the phone number from the EditText
+            String phoneNumber = phoneNumberEditText.getText().toString().trim();
+
+            // Check if the phone number is empty
+            if (phoneNumber.isEmpty()) {
+                Toast.makeText(this, "Please enter a phone number", Toast.LENGTH_SHORT).show();
+                return; // Exit the method if the phone number is empty
+            }
+
+            // Your message to send
+            String message = "Safety Sphere is Activated please look on to it!";
+
+            // Check if WhatsApp is installed on the device
+            if (isWhatsAppInstalled()) {
+                // Send message using WhatsApp
+                sendWhatsAppMessage(phoneNumber, message);
+            } else {
+                // WhatsApp is not installed, display a toast or handle the situation accordingly
+                Toast.makeText(MainActivity.this, "WhatsApp is not installed on this device", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private boolean isWhatsAppInstalled() {
+        // Check if WhatsApp is installed on the device
+        Intent whatsappIntent = new Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:"));
+        return whatsappIntent.resolveActivity(getPackageManager()) != null;
+    }
+
+    private void sendWhatsAppMessage(String phoneNumber, String message) {
+        // Create a Uri for the phone number
+        Uri uri = Uri.parse("https://api.whatsapp.com/send?phone=" + phoneNumber + "&text=" + message);
+
+        // Create an Intent with the ACTION_VIEW action and the WhatsApp Uri
+        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+
+        // Set the package to WhatsApp
+        intent.setPackage("com.whatsapp");
+
+        // Start the activity
+        startActivity(intent);
+    }
+}
+
+
+
+AndroidManifest.xml:-
+
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Whatsapp1"
+        tools:targetApi="31">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+    <!-- Add queries declaration -->
+    <queries>
+        <package android:name="com.whatsapp" />
+    </queries>
+
+</manifest>
+
+

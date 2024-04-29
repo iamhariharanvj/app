@@ -1,0 +1,149 @@
+activity.xml:-
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/mediaController"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/media_controller"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/button_play"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/play"
+        android:onClick="play"/>
+
+    <Button
+        android:id="@+id/button_pause"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/pause"
+        android:layout_marginTop="16dp"
+        android:onClick="pause"
+        android:enabled="false"/>
+
+    <Button
+        android:id="@+id/button_resume"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/resume"
+        android:layout_marginTop="16dp"
+        android:onClick="resume"
+        android:enabled="false"/>
+
+    <Button
+        android:id="@+id/button_stop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/stop"
+        android:layout_marginTop="16dp"
+        android:onClick="stop"
+        android:enabled="false"/>
+
+</LinearLayout>
+
+
+
+
+MainActivity.xml:-
+
+
+
+package com.example.media1;
+import android.media.MediaPlayer;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity {
+
+    private MediaPlayer mediaPlayer;
+    private Button buttonPlay;
+    private Button buttonPause;
+    private Button buttonResume;
+    private Button buttonStop;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        // Initialize buttons
+        buttonPlay = findViewById(R.id.button_play);
+        buttonPause = findViewById(R.id.button_pause);
+        buttonResume = findViewById(R.id.button_resume);
+        buttonStop = findViewById(R.id.button_stop);
+
+        // Initialize MediaPlayer with audio file
+        mediaPlayer = MediaPlayer.create(this, R.raw.audio);
+
+        // Set listeners for playback controls
+        mediaPlayer.setOnCompletionListener(mp -> {
+            buttonPlay.setEnabled(true);
+            buttonPause.setEnabled(false);
+            buttonResume.setEnabled(false);
+            buttonStop.setEnabled(false);
+        });
+    }
+
+    public void play(View view) {
+        mediaPlayer.start();
+        buttonPlay.setEnabled(false);
+        buttonPause.setEnabled(true);
+        buttonResume.setEnabled(false);
+        buttonStop.setEnabled(true);
+    }
+
+    public void pause(View view) {
+        mediaPlayer.pause();
+        buttonPlay.setEnabled(false);
+        buttonPause.setEnabled(false);
+        buttonResume.setEnabled(true);
+        buttonStop.setEnabled(true);
+    }
+
+    public void resume(View view) {
+        mediaPlayer.start();
+        buttonPlay.setEnabled(false);
+        buttonPause.setEnabled(true);
+        buttonResume.setEnabled(false);
+        buttonStop.setEnabled(true);
+    }
+
+    public void stop(View view) {
+        mediaPlayer.stop();
+        mediaPlayer.prepareAsync();
+        mediaPlayer.seekTo(0);
+        buttonPlay.setEnabled(true);
+        buttonPause.setEnabled(false);
+        buttonResume.setEnabled(false);
+        buttonStop.setEnabled(false);
+        Toast.makeText(this, "Music has been stopped", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
+    }
+}
+
+

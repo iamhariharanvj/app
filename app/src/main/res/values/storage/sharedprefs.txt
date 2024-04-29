@@ -1,0 +1,143 @@
+java:
+
+package com.cscorner.viks;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.util.Log;
+import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.Switch;
+import android.widget.Toast;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
+public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "MainActivity";
+    private static final String PREF_NAME = "MyPrefs";
+    private static final String DARK_MODE_KEY = "darkMode";
+    private static final String USERNAME_KEY = "username";
+    private static final String PASSWORD_KEY = "password";
+    private SharedPreferences sharedPreferences;
+    private Switch switchDarkMode;
+    private Button buttonSaveCredentials;
+    private EditText editTextUsername;
+    private EditText editTextPassword;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        switchDarkMode = findViewById(R.id.switchDarkMode);
+        buttonSaveCredentials = findViewById(R.id.buttonSaveCredentials);
+        editTextUsername = findViewById(R.id.editTextUsername);
+        editTextPassword = findViewById(R.id.editTextPassword);
+        sharedPreferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);        switchDarkMode.setChecked(sharedPreferences.getBoolean(DARK_MODE_KEY, false));
+        switchDarkMode.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putBoolean(DARK_MODE_KEY, isChecked);
+                editor.apply();
+                if (isChecked) {
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                } else {
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                }
+                recreate(); // Recreate the activity to apply the new theme
+            }
+        });
+        buttonSaveCredentials.setOnClickListener(view -> {
+            String username = editTextUsername.getText().toString().trim();
+            String password = editTextPassword.getText().toString().trim();
+            if (!username.isEmpty() && !password.isEmpty()) {
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString(USERNAME_KEY, username);
+                editor.putString(PASSWORD_KEY, password);
+                editor.apply(); // Changed to apply() for asynchronous save
+                Toast.makeText(MainActivity.this, "Credentials saved", Toast.LENGTH_SHORT).show();
+                Log.d(TAG, "Credentials saved successfully");
+            } else {
+                Toast.makeText(MainActivity.this, "Please enter username and password", Toast.LENGTH_SHORT).show();
+            }
+        });
+        String sharedPrefsPath = getSharedPreferences(PREF_NAME, MODE_PRIVATE).toString();
+        Log.d(TAG, "SharedPreferences file path: " + sharedPrefsPath);
+    }
+}
+
+manifest:
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.MyApplication_5_a"
+        tools:targetApi="31">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
+
+activity main:
+
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <Switch
+        android:id="@+id/switchDarkMode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:text="Dark Mode"
+        android:contentDescription="@string/switch_dark_mode_description" />
+    <EditText
+        android:id="@+id/editTextUsername"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Username" />
+    <EditText
+        android:id="@+id/editTextPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Password"
+        android:inputType="textPassword" />
+    <Button
+        android:id="@+id/buttonSaveCredentials"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Save Credentials"
+        android:contentDescription="@string/save_credentials_button_description" />
+</LinearLayout>
+
+strings:
+<resources>
+    <string name="app_name">YourAppName</string>
+    <string name="switch_dark_mode_description">Toggle dark mode</string>
+    <string name="save_credentials_button_description">Save credentials</string>
+</resources>
+
+colours:
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#6200EE</color>
+    <color name="colorPrimaryVariant">#3700B3</color>
+    <color name="colorOnPrimary">#FFFFFF</color>
+    <color name="colorSecondary">#03DAC5</color>
+    <color name="colorSecondaryVariant">#01A296</color>
+    <color name="colorOnSecondary">#000000</color>
+</resources>
+

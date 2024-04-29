@@ -1,0 +1,132 @@
+Activity.xml:-
+
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <Button
+        android:id="@+id/wifiSwitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="@string/click" />
+    <TextView
+        android:id="@+id/tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/wifiSwitch"
+        android:layout_centerHorizontal="true"
+        android:hint="@string/wifi_status"
+        android:textSize="30sp" />
+
+</RelativeLayout>
+
+
+
+
+MainActivity.xml:-
+
+
+
+package com.example.wifi;
+
+import android.net.wifi.WifiManager;
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.TextView;
+import androidx.appcompat.app.AppCompatActivity;
+import android.view.View;
+
+public class MainActivity extends AppCompatActivity {
+
+    private WifiManager wifiManager;
+    private Button wifiSwitchButton;
+    private TextView wifiStatusTextView;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        // Initialize views
+        wifiSwitchButton = findViewById(R.id.wifiSwitch);
+        wifiStatusTextView = findViewById(R.id.tv);
+
+        // Initialize WifiManager
+        wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
+
+        // Set OnClickListener for the button
+        wifiSwitchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                toggleWifi();
+            }
+        });
+
+        // Set initial Wi-Fi status text
+        updateWifiStatusText();
+    }
+
+    private void toggleWifi() {
+        if (wifiManager.isWifiEnabled()) {
+            wifiManager.setWifiEnabled(false);
+        } else {
+            wifiManager.setWifiEnabled(true);
+        }
+        updateWifiStatusText();
+    }
+
+    private void updateWifiStatusText() {
+        if (wifiManager.isWifiEnabled()) {
+            wifiStatusTextView.setText(R.string.wi_fi_is_on);
+        } else {
+            wifiStatusTextView.setText(R.string.wi_fi_is_off);
+        }
+    }
+}
+
+
+
+
+Android Manifest.xml:-
+
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.WIFI"
+        tools:targetApi="31">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
+
