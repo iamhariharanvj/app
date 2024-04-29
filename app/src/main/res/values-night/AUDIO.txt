@@ -1,0 +1,134 @@
+Create a new folder ‘raw’ under res directory and under raw ,put a sample audio named ‘song’ ( in mp3 format ) 
+
+
+MainActivity.java
+
+package com.example.audio;
+
+import android.annotation.SuppressLint;
+import android.media.MediaPlayer;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.SeekBar;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity {
+
+    private MediaPlayer music;
+    private SeekBar seekBar;
+
+
+    @SuppressLint("MissingInflatedId")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        // Initialize MediaPlayer with the song
+        music = MediaPlayer.create(this, R.raw.song);
+
+        // Initialize SeekBar
+        seekBar = findViewById(R.id.seekBar);
+        seekBar.setMax(music.getDuration()); // Set maximum value of seekbar to the duration of the song
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) {
+                    music.seekTo(progress); // Seek to the specified position when user drags the seekbar
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {}
+        });
+    }
+
+    public void musicplay(View v) {
+        music.start();
+    }
+
+    public void musicpause(View v) {
+        music.pause();
+    }
+
+    public void musicstop(View v) {
+        music.stop();
+        music = MediaPlayer.create(this, R.raw.song);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (music != null) {
+            music.release(); // Release MediaPlayer when activity is destroyed
+        }
+    }
+}
+
+
+activity_main.xml
+
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFBB86FC"
+    android:orientation="vertical"
+    android:theme="@style/Theme.AppCompat"
+    tools:context=".MainActivity">
+
+<!--    <ImageView-->
+<!--        android:id="@+id/imageView"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="430dp"-->
+<!--        android:background="@drawable/img_1" />-->
+
+    <SeekBar
+        android:id="@+id/seekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="10dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:background="@color/black"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <Button
+            android:id="@+id/pause"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            android:layout_width="125dp"
+            android:layout_height="match_parent"
+            android:background="@android:drawable/ic_media_pause"
+            android:onClick="musicpause" />
+
+        <Button
+            android:id="@+id/start"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="125dp"
+            android:layout_height="match_parent"
+            android:background="@android:drawable/ic_media_play"
+            android:onClick="musicplay" />
+
+        <Button
+            android:id="@+id/stop"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="125dp"
+            android:layout_height="match_parent"
+            android:background="@android:drawable/ic_delete"
+            android:onClick="musicstop" />
+
+    </LinearLayout>
+</LinearLayout>
